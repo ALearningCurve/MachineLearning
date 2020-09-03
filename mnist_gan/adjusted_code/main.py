@@ -135,27 +135,14 @@ def train(dataset, epochs):
 	for epoch in range(epochs):
 		start = time.time()
 
-		for i, image_batch in enumerate(dataset, 1):
-			print("Batch {}".format(i))
-			train_step(image_batch)
-
-		# Produce images for the GIF as we go
-		display.clear_output(wait=True)
-		generate_and_save_images(generator,
-							 epoch + 1,
-							 seed)
+		print("Batch {}".format(0))
+		train_step(list(iter(dataset))[0])
 
 		# Save the model every 15 epochs
 		if (epoch + 1) % 15 == 0:
 			checkpoint.save(file_prefix = checkpoint_prefix)
 
 		print ('Time for epoch {} is {} sec'.format(epoch + 1, time.time()-start))
-
-	# Generate after the final epoch
-	display.clear_output(wait=True)
-	generate_and_save_images(generator,
-						   epochs,
-						   seed)
 
 
 def generate_and_save_images(model, epoch, test_input):
@@ -178,25 +165,8 @@ checkpoint.restore(tf.train.latest_checkpoint(checkpoint_dir))
 
 
 
-train(train_dataset, EPOCHS)
+train(train_dataset, 1)
 
 
-# Display a single image using the epoch number
-def display_image(epoch_no):
-	return PIL.Image.open('image_at_epoch_{:04d}.png'.format(epoch_no))
-
-display_image(EPOCHS)
-
-anim_file = 'dcgan.gif'
-
-with imageio.get_writer(anim_file, mode='I') as writer:
-	filenames = glob.glob('image*.png')
-	filenames = sorted(filenames)
-	for filename in filenames:
-		image = imageio.imread(filename)
-		writer.append_data(image)
-	image = imageio.imread(filename)
-	writer.append_data(image)
-
-import tensorflow_docs.vis.embed as embed
-embed.embed_file(anim_file)
+generator.save("digit_generator")
+discriminator.save("digit_discriminator")
