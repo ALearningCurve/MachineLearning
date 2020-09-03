@@ -13,7 +13,7 @@ import time
 from IPython import display
 
 
-models_path = r"C:\Users\cayse\Desktop\WillyWally\models"
+models_path = r"D:\Git\MachineLearning\models"
 
 generator = keras.models.load_model(os.path.join(models_path, "digit_generator"))
 classifier = keras.models.load_model(os.path.join(models_path, "digit_classifier"))
@@ -41,10 +41,11 @@ def noise_generator_loss(classifier_output, digit_type):
 
 optimizer = tf.keras.optimizers.Adam(1e-4)
 
-checkpoint_dir = './training_checkpoints'
-checkpoint_prefix = os.path.join(checkpoint_dir, "ckpt")
-checkpoint = tf.train.Checkpoint(optimizer=optimizer,
-								model=noise_generator)
+for i,noise_generator in enumerate(noise_generators):
+	checkpoint_dir = './training_checkpoints_{}'.format(i)
+	checkpoint_prefix = os.path.join(checkpoint_dir, "ckpt")
+	checkpoint = tf.train.Checkpoint(optimizer=optimizer,
+									model=noise_generator)
 
 
 EPOCHS = 50
@@ -111,7 +112,7 @@ def generate_and_save_images(model, epoch, test_input, digit):
 
 
 checkpoint.restore(tf.train.latest_checkpoint(checkpoint_dir))
-train(train_dataset, 1)
+train(EPOCHS)
 
 generator.save_model("digit_generator")
 discriminator.save_model("digit_discriminator")
