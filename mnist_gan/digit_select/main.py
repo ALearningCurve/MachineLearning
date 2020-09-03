@@ -77,15 +77,15 @@ def train(epochs):
 	for epoch in range(epochs):
 		start = time.time()
 
-		for i, image_batch in enumerate(dataset, 1):
-			print("Batch {}".format(i))
-			train_step(image_batch)
+		for digit, noise_generator in enumerate(noise_generators):
+			train_step(digit, noise_generator)
 
-		# Produce images for the GIF as we go
-		display.clear_output(wait=True)
-		generate_and_save_images(generator,
-							 epoch + 1,
-							 seed)
+
+			display.clear_output(wait=True)
+			generate_and_save_images(generator,
+								 epoch + 1,
+								 seed,
+								 digit)
 
 		# Save the model every 15 epochs
 		if (epoch + 1) % 15 == 0:
@@ -93,14 +93,8 @@ def train(epochs):
 
 		print ('Time for epoch {} is {} sec'.format(epoch + 1, time.time()-start))
 
-	# Generate after the final epoch
-	display.clear_output(wait=True)
-	generate_and_save_images(generator,
-						   epochs,
-						   seed)
 
-
-def generate_and_save_images(model, epoch, test_input):
+def generate_and_save_images(model, epoch, test_input, digit):
 	# Notice `training` is set to False.
 	# This is so all layers run in inference mode (batchnorm).
 	predictions = model(test_input, training=False)
@@ -112,14 +106,11 @@ def generate_and_save_images(model, epoch, test_input):
 		plt.imshow(predictions[i, :, :, 0] * 127.5 + 127.5, cmap='gray')
 		plt.axis('off')
 
-	plt.savefig('image_at_epoch_{:04d}.png'.format(epoch))
+	plt.savefig('image_{}_at_epoch_{:04d}.png'.format(digit, epoch))
 	#plt.show()
 
 
 checkpoint.restore(tf.train.latest_checkpoint(checkpoint_dir))
-
-
-
 train(train_dataset, 1)
 
 generator.save_model("digit_generator")
@@ -130,18 +121,14 @@ discriminator.save_model("digit_discriminator")
 def display_image(epoch_no):
 	return PIL.Image.open('image_at_epoch_{:04d}.png'.format(epoch_no))
 
-display_image(EPOCHS)
+for digit in range(10):
+	anim_file = 'dcgan_{}.gif'.format(digit)
 
-anim_file = 'dcgan.gif'
-
-with imageio.get_writer(anim_file, mode='I') as writer:
-	filenames = glob.glob('image*.png')
-	filenames = sorted(filenames)
-	for filename in filenames:
+	with imageio.get_writer(anim_file, mode='I') as writer:
+		filenames = glob.glob('image_{}*.png'.format(digit))
+		filenames = sorted(filenames)
+		for filename in filenames:
+			image = imageio.imread(filename)
+			writer.append_data(image)
 		image = imageio.imread(filename)
 		writer.append_data(image)
-	image = imageio.imread(filename)
-	writer.append_data(image)
-
-import tensorflow_docs.vis.embed as embed
-embed.embed_file(anim_file)
