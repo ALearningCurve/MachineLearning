@@ -22,7 +22,7 @@ models_path = os.path.join(working_tree_dir, "_models")
 
 
 #GLOBALS
-EPOCHS = 2
+EPOCHS = 100
 BATCH_SIZE = 1024
 noise_dim = 100
 num_examples_to_generate = 16
@@ -286,7 +286,7 @@ def generate_and_save_images(model, epoch, test_input, digit):
 		plt.axis('off')
 
 	plt.savefig('image_{}_at_epoch_{:04d}.png'.format(digit, epoch))
-	#plt.show()
+	plt.close("all") #plt.show()
 
 
 checkpoint.restore(tf.train.latest_checkpoint(checkpoint_dir))
